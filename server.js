@@ -26,7 +26,15 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // 连接 MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/globepick';
 
-mongoose.connect(MONGODB_URI)
+// 增加连接超时时间和重试配置
+mongoose.connect(MONGODB_URI, {
+  serverSelectionTimeoutMS: 30000, // 30秒超时（默认10秒）
+  socketTimeoutMS: 45000, // 45秒socket超时
+  connectTimeoutMS: 30000, // 30秒连接超时
+  maxPoolSize: 10, // 最大连接池大小
+  retryWrites: true,
+  w: 'majority'
+})
 .then(() => {
   console.log('✅ MongoDB 连接成功');
 })
