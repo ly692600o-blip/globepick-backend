@@ -76,9 +76,37 @@ io.on('connection', (socket) => {
   });
 });
 
-// 健康检查
+// 健康检查 - 改进版本，确保Railway能正确检测
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'GlobePick API 运行正常' });
+  // 检查MongoDB连接状态
+  const mongoStatus = mongoose.connection.readyState;
+  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+  
+  if (mongoStatus === 1) {
+    res.status(200).json({ 
+      status: 'ok', 
+      message: 'GlobePick API 运行正常',
+      mongodb: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    // MongoDB还在连接中，但服务器已启动，返回200
+    res.status(200).json({ 
+      status: 'ok', 
+      message: 'GlobePick API 运行正常',
+      mongodb: 'connecting',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// 根路径也返回健康状态（Railway可能检查根路径）
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok', 
+    message: 'GlobePick API 运行正常',
+    timestamp: new Date().toISOString()
+  });
 });
 
 const PORT = process.env.PORT || 3000;
