@@ -23,24 +23,30 @@ app.use(express.urlencoded({ extended: true }));
 // 静态文件服务 - 用于访问上传的图片
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 连接 MongoDB
+// 连接 MongoDB - 异步连接，不阻塞服务器启动
+// 这很重要：服务器必须先启动，然后才能连接MongoDB
+// 这样Railway的健康检查能立即得到响应
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/globepick';
 
-// 增加连接超时时间和重试配置
-mongoose.connect(MONGODB_URI, {
-  serverSelectionTimeoutMS: 30000, // 30秒超时（默认10秒）
-  socketTimeoutMS: 45000, // 45秒socket超时
-  connectTimeoutMS: 30000, // 30秒连接超时
-  maxPoolSize: 10, // 最大连接池大小
-  retryWrites: true,
-  w: 'majority'
-})
-.then(() => {
-  console.log('✅ MongoDB 连接成功');
-})
-.catch((error) => {
-  console.error('❌ MongoDB 连接失败:', error);
-});
+// 延迟连接MongoDB，确保服务器先启动
+setTimeout(() => {
+  mongoose.connect(MONGODB_URI, {
+    serverSelectionTimeoutMS: 30000, // 30秒超时（默认10秒）
+    socketTimeoutMS: 45000, // 45秒socket超时
+    connectTimeoutMS: 30000, // 30秒连接超时
+    maxPoolSize: 10, // 最大连接池大小
+    retryWrites: true,
+    w: 'majority'
+  })
+  .then(() => {
+    console.log('✅ MongoDB 连接成功');
+  })
+  .catch((error) => {
+    console.error('❌ MongoDB 连接失败:', error);
+    // 即使MongoDB连接失败，服务器也继续运行
+    // 这样健康检查端点仍然可以响应
+  });
+}, 100); // 延迟100ms，确保服务器先启动
 
 // 路由
 app.use('/api/auth', require('./routes/auth'));
