@@ -114,6 +114,13 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 服务器运行在 http://0.0.0.0:${PORT}`);
   console.log(`📱 iOS 模拟器可以使用 http://127.0.0.1:${PORT} 或 http://localhost:${PORT}`);
+  console.log(`✅ 健康检查端点: http://0.0.0.0:${PORT}/health`);
+  
+  // 确保服务器启动后立即可以响应请求
+  // 这有助于Railway的健康检查
+  setTimeout(() => {
+    console.log('✅ 服务器已完全启动，可以接收请求');
+  }, 1000);
 });
 
 // 优雅关闭处理
