@@ -88,5 +88,28 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`📱 iOS 模拟器可以使用 http://127.0.0.1:${PORT} 或 http://localhost:${PORT}`);
 });
 
+// 优雅关闭处理
+process.on('SIGTERM', () => {
+  console.log('收到 SIGTERM 信号，正在关闭服务器...');
+  server.close(() => {
+    console.log('服务器已关闭');
+    mongoose.connection.close(false, () => {
+      console.log('MongoDB 连接已关闭');
+      process.exit(0);
+    });
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('收到 SIGINT 信号，正在关闭服务器...');
+  server.close(() => {
+    console.log('服务器已关闭');
+    mongoose.connection.close(false, () => {
+      console.log('MongoDB 连接已关闭');
+      process.exit(0);
+    });
+  });
+});
+
 module.exports = { app, io };
 
