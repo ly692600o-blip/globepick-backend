@@ -135,26 +135,35 @@ server.listen(PORT, '0.0.0.0', () => {
 });
 
 // 优雅关闭处理
-process.on('SIGTERM', () => {
-  console.log('收到 SIGTERM 信号，正在关闭服务器...');
+// Mongoose 8.x 版本中，close() 方法不再接受回调，需要使用 Promise
+const gracefulShutdown = async (signal) => {
+  console.log(`收到 ${signal} 信号，正在关闭服务器...`);
+  
+  // 关闭HTTP服务器
   server.close(() => {
     console.log('服务器已关闭');
-    mongoose.connection.close(false, () => {
-      console.log('MongoDB 连接已关闭');
-      process.exit(0);
-    });
   });
+  
+  // 关闭MongoDB连接（Mongoose 8.x 使用 Promise）
+  try {
+    if (mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+      console.log('MongoDB 连接已关闭');
+    }
+  } catch (error) {
+    console.error('关闭MongoDB连接时出错:', error);
+  }
+  
+  // 退出进程
+  process.exit(0);
+};
+
+process.on('SIGTERM', () => {
+  gracefulShutdown('SIGTERM');
 });
 
 process.on('SIGINT', () => {
-  console.log('收到 SIGINT 信号，正在关闭服务器...');
-  server.close(() => {
-    console.log('服务器已关闭');
-    mongoose.connection.close(false, () => {
-      console.log('MongoDB 连接已关闭');
-      process.exit(0);
-    });
-  });
+  gracefulShutdown('SIGINT');
 });
 
 module.exports = { app, io };
