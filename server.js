@@ -77,27 +77,22 @@ io.on('connection', (socket) => {
 });
 
 // 健康检查 - 改进版本，确保Railway能正确检测
+// Railway会在服务启动后定期检查此端点
 app.get('/health', (req, res) => {
-  // 检查MongoDB连接状态
-  const mongoStatus = mongoose.connection.readyState;
-  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
-  
-  if (mongoStatus === 1) {
-    res.status(200).json({ 
-      status: 'ok', 
-      message: 'GlobePick API 运行正常',
-      mongodb: 'connected',
-      timestamp: new Date().toISOString()
-    });
-  } else {
-    // MongoDB还在连接中，但服务器已启动，返回200
-    res.status(200).json({ 
-      status: 'ok', 
-      message: 'GlobePick API 运行正常',
-      mongodb: 'connecting',
-      timestamp: new Date().toISOString()
-    });
-  }
+  // 立即返回200，不等待MongoDB
+  // 这确保Railway知道服务已启动并可以接收请求
+  res.status(200).json({ 
+    status: 'ok', 
+    message: 'GlobePick API 运行正常',
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'connecting',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// 健康检查 - 更简单的版本（Railway可能检查这个）
+app.get('/healthz', (req, res) => {
+  res.status(200).send('ok');
 });
 
 // 根路径也返回健康状态（Railway可能检查根路径）
