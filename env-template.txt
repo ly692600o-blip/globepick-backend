@@ -1,0 +1,23 @@
+# MongoDB 连接字符串
+MONGODB_URI=mongodb://localhost:27017/globepick
+# 或者使用 MongoDB Atlas:
+# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/globepick
+
+# JWT 密钥（用于生成 token）
+JWT_SECRET=your-secret-key-change-this-in-production
+
+# 服务器端口
+PORT=3000
+
+# CORS 允许的源（iOS 应用）
+CORS_ORIGIN=*
+
+# 图片存储配置（如果使用 OSS）
+# ALIYUN_OSS_ACCESS_KEY_ID=your-access-key-id
+# ALIYUN_OSS_ACCESS_KEY_SECRET=your-access-key-secret
+# ALIYUN_OSS_BUCKET=your-bucket-name
+# ALIYUN_OSS_REGION=oss-cn-beijing
+
+
+
+
