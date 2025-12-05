@@ -110,12 +110,22 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 服务器运行在 http://0.0.0.0:${PORT}`);
   console.log(`📱 iOS 模拟器可以使用 http://127.0.0.1:${PORT} 或 http://localhost:${PORT}`);
   console.log(`✅ 健康检查端点: http://0.0.0.0:${PORT}/health`);
+  console.log(`✅ 健康检查端点（简化）: http://0.0.0.0:${PORT}/healthz`);
+  console.log(`✅ 服务器已启动，可以接收请求（包括健康检查）`);
   
-  // 确保服务器启动后立即可以响应请求
-  // 这有助于Railway的健康检查
+  // 立即测试健康检查端点，确保它能响应
+  // 这有助于Railway检测服务状态
+  const http = require('http');
   setTimeout(() => {
-    console.log('✅ 服务器已完全启动，可以接收请求');
-  }, 1000);
+    const testReq = http.get(`http://localhost:${PORT}/health`, (testRes) => {
+      if (testRes.statusCode === 200) {
+        console.log('✅ 健康检查端点测试成功');
+      }
+    });
+    testReq.on('error', () => {
+      // 忽略测试错误，这只是内部测试
+    });
+  }, 500);
 });
 
 // 优雅关闭处理
