@@ -33,6 +33,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // 这是最关键的：Railway会在服务器启动后立即检查
 // ============================================
 app.get('/health', (req, res) => {
+  // 记录健康检查请求（用于调试）
+  console.log(`🔍 健康检查请求来自: ${req.ip || req.connection.remoteAddress || 'unknown'}`);
+  
   // 立即返回200，不等待MongoDB
   // 这确保Railway知道服务已启动并可以接收请求
   res.status(200).json({ 
