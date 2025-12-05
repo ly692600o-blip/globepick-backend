@@ -83,6 +83,56 @@ router.get('/:followingId/check', auth, async (req, res) => {
   }
 });
 
+// 获取关注列表
+router.get('/following/:userId', auth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // 获取该用户关注的所有用户ID
+    const follows = await Follow.find({ followerId: userId }).populate('followingId', 'username avatarURL bio ipLocation');
+    
+    const following = follows.map(follow => {
+      const user = follow.followingId;
+      return {
+        _id: user._id.toString(),
+        username: user.username,
+        avatarURL: user.avatarURL,
+        bio: user.bio,
+        ipLocation: user.ipLocation
+      };
+    });
+    
+    res.json(following);
+  } catch (error) {
+    res.status(500).json({ error: '获取关注列表失败', details: error.message });
+  }
+});
+
+// 获取粉丝列表
+router.get('/followers/:userId', auth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // 获取关注该用户的所有用户ID
+    const follows = await Follow.find({ followingId: userId }).populate('followerId', 'username avatarURL bio ipLocation');
+    
+    const followers = follows.map(follow => {
+      const user = follow.followerId;
+      return {
+        _id: user._id.toString(),
+        username: user.username,
+        avatarURL: user.avatarURL,
+        bio: user.bio,
+        ipLocation: user.ipLocation
+      };
+    });
+    
+    res.json(followers);
+  } catch (error) {
+    res.status(500).json({ error: '获取粉丝列表失败', details: error.message });
+  }
+});
+
 module.exports = router;
 
 
