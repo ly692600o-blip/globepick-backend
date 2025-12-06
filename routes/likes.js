@@ -10,6 +10,14 @@ router.post('/note/:noteId', auth, async (req, res) => {
     const { noteId } = req.params;
     const userId = req.userId;
     
+    // 检查是否是假数据ID
+    if (noteId.startsWith('mock_')) {
+      return res.status(400).json({ 
+        error: '这是演示数据，无法进行点赞操作',
+        isMockData: true 
+      });
+    }
+    
     // 检查是否已经点赞
     const existingLike = await Like.findOne({ noteId, userId });
     if (existingLike) {
@@ -37,6 +45,14 @@ router.delete('/note/:noteId', auth, async (req, res) => {
     const { noteId } = req.params;
     const userId = req.userId;
     
+    // 检查是否是假数据ID
+    if (noteId.startsWith('mock_')) {
+      return res.status(400).json({ 
+        error: '这是演示数据，无法进行取消点赞操作',
+        isMockData: true 
+      });
+    }
+    
     // 删除点赞记录
     const result = await Like.findOneAndDelete({ noteId, userId });
     if (!result) {
@@ -59,6 +75,12 @@ router.get('/note/:noteId/check', auth, async (req, res) => {
   try {
     const { noteId } = req.params;
     const userId = req.userId;
+    
+    // 检查是否是假数据ID
+    if (noteId.startsWith('mock_')) {
+      // 假数据默认未点赞
+      return res.json({ isLiked: false, isMockData: true });
+    }
     
     const like = await Like.findOne({ noteId, userId });
     res.json({ isLiked: !!like });
