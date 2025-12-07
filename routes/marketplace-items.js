@@ -138,7 +138,7 @@ router.get('/search', async (req, res) => {
     }
 });
 
-// 获取单个市集商品详情（必须在 /search 之后）
+// 获取单个市集商品详情
 router.get('/:id', async (req, res) => {
     try {
         const item = await MarketplaceItem.findById(req.params.id)
