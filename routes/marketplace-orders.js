@@ -3,6 +3,7 @@ const MarketplaceOrder = require('../models/MarketplaceOrder');
 const MarketplaceItem = require('../models/MarketplaceItem');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const requireIdentityVerification = require('../middleware/requireIdentityVerification');
 const { getClientIP, getIPLocation } = require('../utils/ipLocation');
 const router = express.Router();
 
@@ -19,8 +20,8 @@ function calculatePlatformFee(totalPrice) {
     }
 }
 
-// 创建市集订单
-router.post('/', auth, async (req, res) => {
+// 创建市集订单 - 需要实名认证（买家和卖家都必须实名认证）
+router.post('/', auth, requireIdentityVerification, async (req, res) => {
     try {
         const {
             itemId, quantity, itemPrice, totalPrice, platformFee, shippingFee,
@@ -56,8 +57,17 @@ router.post('/', auth, async (req, res) => {
         if (!seller) {
             return res.status(404).json({ error: '卖家不存在' });
         }
+        
+        // 检查卖家是否已完成实名认证
+        if (!seller.isIdentityVerified || seller.identityVerificationStatus !== 'approved') {
+            return res.status(403).json({ 
+                error: '卖家未完成实名认证',
+                code: 'SELLER_IDENTITY_VERIFICATION_REQUIRED',
+                message: '该商品的卖家尚未完成实名认证，无法购买'
+            });
+        }
 
-        // 获取用户IP属地
+        // 获取用户IP属地（确保网络环境良好）
         const clientIP = getClientIP(req);
         const detectedIPLocation = await getIPLocation(clientIP);
         const finalIPLocation = ipLocation || detectedIPLocation;
@@ -164,8 +174,8 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
-// 确认收货并结算
-router.post('/:id/confirm-receipt', auth, async (req, res) => {
+// 确认收货并结算 - 需要实名认证
+router.post('/:id/confirm-receipt', auth, requireIdentityVerification, async (req, res) => {
     try {
         const order = await MarketplaceOrder.findById(req.params.id);
 
@@ -217,8 +227,8 @@ router.post('/:id/confirm-receipt', auth, async (req, res) => {
     }
 });
 
-// 更新订单状态（发货）
-router.patch('/:id/ship', auth, async (req, res) => {
+// 更新订单状态（发货）- 需要实名认证
+router.patch('/:id/ship', auth, requireIdentityVerification, async (req, res) => {
     try {
         const { trackingNumber, trackingCompany } = req.body;
         const order = await MarketplaceOrder.findById(req.params.id);
@@ -258,8 +268,8 @@ router.patch('/:id/ship', auth, async (req, res) => {
     }
 });
 
-// 支付订单
-router.post('/:id/pay', auth, async (req, res) => {
+// 支付订单 - 需要实名认证
+router.post('/:id/pay', auth, requireIdentityVerification, async (req, res) => {
     try {
         const order = await MarketplaceOrder.findById(req.params.id);
 
@@ -293,8 +303,8 @@ router.post('/:id/pay', auth, async (req, res) => {
     }
 });
 
-// 取消订单
-router.post('/:id/cancel', auth, async (req, res) => {
+// 取消订单 - 需要实名认证
+router.post('/:id/cancel', auth, requireIdentityVerification, async (req, res) => {
     try {
         const order = await MarketplaceOrder.findById(req.params.id);
 

@@ -2,6 +2,7 @@ const express = require('express');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const requireIdentityVerification = require('../middleware/requireIdentityVerification');
 const { getClientIP, getIPLocation } = require('../utils/ipLocation');
 const router = express.Router();
 
@@ -41,8 +42,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 创建商品（代购需求）
-router.post('/', auth, async (req, res) => {
+// 创建商品（代购需求）- 需要实名认证
+router.post('/', auth, requireIdentityVerification, async (req, res) => {
   try {
     const { 
       title, description, images, price, originalPrice, currency, location, 
@@ -138,8 +139,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// 接单（代购者接单）
-router.post('/:id/accept', auth, async (req, res) => {
+// 接单（代购者接单）- 需要实名认证
+router.post('/:id/accept', auth, requireIdentityVerification, async (req, res) => {
   try {
     const { legalAgreedAt, legalAgreedIP, legalAgreementVersion } = req.body;
     const productId = req.params.id;

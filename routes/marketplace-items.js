@@ -2,6 +2,7 @@ const express = require('express');
 const MarketplaceItem = require('../models/MarketplaceItem');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const requireIdentityVerification = require('../middleware/requireIdentityVerification');
 const { getClientIP, getIPLocation } = require('../utils/ipLocation');
 const router = express.Router();
 
@@ -159,8 +160,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// 创建市集商品
-router.post('/', auth, async (req, res) => {
+// 创建市集商品 - 需要实名认证
+router.post('/', auth, requireIdentityVerification, async (req, res) => {
     try {
         const {
             title, description, images, price, originalPrice, category, condition,
@@ -254,8 +255,8 @@ router.patch('/:id', auth, async (req, res) => {
     }
 });
 
-// 删除市集商品
-router.delete('/:id', auth, async (req, res) => {
+// 删除市集商品 - 需要实名认证
+router.delete('/:id', auth, requireIdentityVerification, async (req, res) => {
     try {
         const item = await MarketplaceItem.findById(req.params.id);
 

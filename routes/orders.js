@@ -3,11 +3,12 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const requireIdentityVerification = require('../middleware/requireIdentityVerification');
 const { getClientIP, getIPLocation } = require('../utils/ipLocation');
 const router = express.Router();
 
-// 创建订单
-router.post('/', auth, async (req, res) => {
+// 创建订单 - 需要实名认证
+router.post('/', auth, requireIdentityVerification, async (req, res) => {
   try {
     const { productId, quantity, shippingAddress, shippingFee, notes } = req.body;
     
