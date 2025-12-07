@@ -281,58 +281,5 @@ router.delete('/:id', auth, async (req, res) => {
     }
 });
 
-// 搜索市集商品
-router.get('/search', async (req, res) => {
-    try {
-        const { q, category, minPrice, maxPrice, page = 1, limit = 20 } = req.query;
-
-        const query = { status: 'available' };
-
-        // 搜索关键词
-        if (q) {
-            query.$or = [
-                { title: { $regex: q, $options: 'i' } },
-                { description: { $regex: q, $options: 'i' } },
-                { tags: { $in: [new RegExp(q, 'i')] } }
-            ];
-        }
-
-        if (category) {
-            query.category = category;
-        }
-
-        if (minPrice || maxPrice) {
-            query.price = {};
-            if (minPrice) {
-                query.price.$gte = parseFloat(minPrice);
-            }
-            if (maxPrice) {
-                query.price.$lte = parseFloat(maxPrice);
-            }
-        }
-
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-
-        const items = await MarketplaceItem.find(query)
-            .populate('userId', 'username avatarURL')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit));
-
-        const total = await MarketplaceItem.countDocuments(query);
-
-        res.json({
-            items,
-            total,
-            page: parseInt(page),
-            limit: parseInt(limit),
-            totalPages: Math.ceil(total / parseInt(limit))
-        });
-    } catch (error) {
-        console.error('搜索商品失败:', error);
-        res.status(500).json({ error: '搜索商品失败', details: error.message });
-    }
-});
-
 module.exports = router;
 
